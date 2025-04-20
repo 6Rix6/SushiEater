@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Sushida Cheat AutoTyper",
+  "version": "1.0",
+  "description": "Enable preserveDrawingBuffer and inject OCR autotype script on sushida.net",
+  "host_permissions": ["https://sushida.net/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://sushida.net/play.html"],
+      "js": ["content-script.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["early-inject.js","tesseract.min.js","main.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+    "scripting",
+    "activeTab"
+  ]
+}

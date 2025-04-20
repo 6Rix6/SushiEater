@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 10px;
+        width: 200px;
+      }
+      button {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+      }
+      .settings{
+        display: flex;
+        flex-direction: column;
+      }
+    </style>
+</head>
+<body>
+    <h3>🍣 Sushida Cheat</h3>
+    <div class = "settings">
+      <button id="toggle">有効化</button>
+      <label><input type="checkbox" id="auto">オートコンプリート</label>
+      <label><input type="checkbox" id="visible">抽出されたテキストを表示</label>
+      <label><input type="checkbox" id="fake">入力を無効化</label>
+      <label><input type="checkbox" id="fake">入力を偽装</label>
+      issue: popupを閉じるとチェックボックスがリセットされる
+      <script src="popup.js"></script>
+    </div>
+</body>
+</html>
