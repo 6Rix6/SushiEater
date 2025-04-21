@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Sushida Cheat AutoTyper",
+  "name": "Sushi Ninja",
   "version": "1.0",
-  "description": "Enable preserveDrawingBuffer and inject OCR autotype script on sushida.net",
+  "description": "寿司打用チートツール。 github repo: https://github.com/6Rix6/SushiEater",
   "host_permissions": ["https://sushida.net/*"],
   "content_scripts": [
     {
@@ -18,7 +18,17 @@
     }
   ],
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   },
   "permissions": [
     "storage",
