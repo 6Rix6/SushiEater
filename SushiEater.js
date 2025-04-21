@@ -1,5 +1,5 @@
 //すべてのgetContextにpreserveDrawingBuffer = trueを強制
-//ただしスクリプトが読み込まれる前（つまりめっちゃ早く）に実行しなければいけない
+//ただしスクリプトが読み込まれる前（つまりめっちゃ早く）に実行
 var getContext = HTMLCanvasElement.prototype.getContext;
 HTMLCanvasElement.prototype.getContext = function(){
   if( arguments[ 1 ] ) arguments[ 1 ].preserveDrawingBuffer = true;
@@ -8,7 +8,7 @@ HTMLCanvasElement.prototype.getContext = function(){
 }
 
 
-//本体
+//ゲーム起動後に実行
 const script = document.createElement('script');
 script.src =
   'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js'

@@ -4,25 +4,33 @@ preserveScript.src = chrome.runtime.getURL('early-inject.js');
 preserveScript.type = 'text/javascript';
 (document.head || document.documentElement).prepend(preserveScript);
 
-let initialState = {
-  visible: false,
+const cheatState = {
+  isVisible: false,
+  isAuto: false,
+  isKeyDisable: false,
+  isKeyFake: false,
+}
+
+const updateCheatState = async () =>{
+  await chrome.storage.local.get(
+    {
+      isVisible: false,
+      isAuto: false,
+      isKeyDisable: false,
+      isKeyFake: false,
+    },
+    (result)=>{
+      cheatState.isVisible = result.isVisible;
+      cheatState.isAuto = result.isAuto;
+      cheatState.isKeyDisable = result.isKeyDisable;
+      cheatState.isKeyFake = result.isKeyFake;
+    }
+  )
+  console.log("cheatState Updated. : ",cheatState);
 }
 
 window.onload = async (e) => {
-  chrome.storage.local.get(["isVisible"],({isVisible})=>{
-    initialState.visible = isVisible
-    console.log(initialState.visible);
-  })
-}
-function waitForScript() {
-  return new Promise(resolve => {
-    const check = () => {
-      const script = document.getElementById("cheat-main-script");
-      if (script) resolve(script);
-      else setTimeout(check, 100);
-    };
-    check();
-  });
+  updateCheatState();
 }
 
 // tesseract.min.js 読み込み → その後 main.js を読み込む
@@ -39,9 +47,10 @@ tesseractScript.onload = async () => {
     script.id = "cheat-main-script";
     document.body.appendChild(script);
     console.log("Cheat is ready.");
-    const cheatscript = await waitForScript();
-    console.log(cheatscript);
-    window.postMessage({type: "INITIAL_STATE", state:initialState.visible}, "*");
+    await updateCheatState();
+    setTimeout(async() => {
+      window.postMessage({type: "SET_CHEAT_STATE", state:cheatState}, "*");
+    }, 1000);
   }
 });
 };
@@ -49,6 +58,8 @@ document.body.appendChild(tesseractScript);
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // ページ側に window.postMessage で渡す
-  window.postMessage({ type: "TOGGLE_CHEAT", state: message.state }, "*");
+  console.log(message);
+  if(message.type === "TOGGLE_CHEAT")window.postMessage({ type: "TOGGLE_CHEAT", state: message.state }, "*");
+  if(message.type === "SET_CHEAT_STATE")window.postMessage({ type: "SET_CHEAT_STATE", state: message.state }, "*");
 });
 

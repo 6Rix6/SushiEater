@@ -1,20 +1,48 @@
 let isEnabled = false;
 const toggle = document.getElementById("toggle");
 const visible = document.getElementById("visible");
+const auto = document.getElementById("auto");
+const keyDisable = document.getElementById("keyDisable");
+const keyFake = document.getElementById("keyFake");
 
-window.onload = async (e) => {
-  chrome.storage.local.get(["isVisible"],({isVisible})=>{
-    if (typeof isVisible === "undefined") {
-      chrome.storage.local.set({isVisible:false});
-    } else {
-      visible.checked = isVisible;
-    }
-  })
+const cheatState = {
+  isVisible: false,
+  isAuto: false,
+  isKeyDisable: false,
+  isKeyFake: false,
 }
 
 
+window.onload = async (e) => {
+  chrome.storage.local.get(
+    {
+      isVisible: false,
+      isAuto: false,
+      isKeyDisable: false,
+      isKeyFake: false,
+    },
+    (result)=>{
+      visible.checked = result.isVisible;
+      auto.checked = result.isAuto;
+      keyDisable.checked = result.isKeyDisable;
+      keyFake.checked = result.isKeyFake;
+      cheatState.isVisible = result.isVisible;
+      cheatState.isAuto = result.isAuto;
+      cheatState.isKeyDisable = result.isKeyDisable;
+      cheatState.isKeyFake = result.isKeyFake;
+    }
+  )
+};
+
+const sendCheatState = async() => {
+  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+    chrome.tabs.sendMessage(tab.id, { type: "SET_CHEAT_STATE", state: cheatState });
+  });
+}
+
 toggle.addEventListener("click", async () => {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  //    ↓↓↓↓↓  chrome.tabs.queryは配列を返すのでその0番目を"tab"に代入している(知らんかった～)
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true }); 
   if (!tab) return;
 
   if (!isEnabled) {
@@ -26,7 +54,7 @@ toggle.addEventListener("click", async () => {
             script.src = chrome.runtime.getURL("main.js");
             script.id = "cheat-main-script";
             document.body.appendChild(script);
-            console.log("🎮 Cheat activated (main.js loaded)!");
+            console.log("Cheat activated.");
         }
     });
     isEnabled = true;
@@ -44,31 +72,26 @@ toggle.addEventListener("click", async () => {
   }
 });
 
-document.getElementById('auto').addEventListener('click',async ()=>{
-  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-    chrome.tabs.sendMessage(tab.id, { type: "TOGGLE_CHEAT", state: document.getElementById('auto').checked });
-  });
+auto.addEventListener('click', async ()=>{
+  cheatState.isAuto = auto.checked;
+  chrome.storage.local.set({isAuto:auto.checked});
+  sendCheatState();
 });
 
-document.getElementById('visible').addEventListener('click',async ()=>{
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  const isVisible = document.getElementById('visible').checked;
-  chrome.storage.local.set({isVisible:isVisible});
-  if (isVisible){
-    chrome.scripting.executeScript( {
-      target: { tabId: tab.id },
-      func: function(){
-        const bufferCanvas = document.getElementById("bufferCanvas");
-        if (bufferCanvas) bufferCanvas.style.display = "block";
-      }
-    });
-  }else{
-    chrome.scripting.executeScript( {
-      target: { tabId: tab.id },
-      func: function(){
-        const bufferCanvas = document.getElementById("bufferCanvas");
-        if (bufferCanvas) bufferCanvas.style.display = "none";
-      }
-    });
-  }
+visible.addEventListener('click', async ()=>{
+  cheatState.isVisible = visible.checked;
+  chrome.storage.local.set({isVisible:visible.checked});
+  sendCheatState();
+});
+
+keyDisable.addEventListener('click', async () => {
+  cheatState.isKeyDisable = keyDisable.checked;
+  chrome.storage.local.set({isKeyDisable:keyDisable.checked});
+  sendCheatState();
+});
+
+keyFake.addEventListener('click', async () => {
+  cheatState.isKeyFake = keyFake.checked;
+  chrome.storage.local.set({isKeyFake:keyFake.checked});
+  sendCheatState();
 });

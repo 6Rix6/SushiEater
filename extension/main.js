@@ -1,30 +1,24 @@
-let cheatState = {
-  isAuto: false,
+const cheatState = {
   isVisible: false,
-  setIsAuto: function(state) {
-    this.isAuto = state;
-    console.log("auto mode : ", state);
-  },
-  setIsVisible: function(state) {
-    this.isVisible = state;
-    console.log("text visible :")
-  }
-};
+  isAuto: false,
+  isKeyDisable: false,
+  isKeyFake: false,
+}
 
 window.addEventListener("message", (event) => {
   if (event.source !== window) return; // 自分からの message 以外は無視
 
-  if (event.data.type === "TOGGLE_CHEAT") {
-    if (cheatState) {
-      cheatState.setIsAuto(event.data.state);
-    } else {
-      console.warn("cheatState is not difined");
+  if(event.data.type === "SET_CHEAT_STATE") {
+    cheatState.isVisible = event.data.state.isVisible;
+    cheatState.isAuto = event.data.state.isAuto;
+    cheatState.isKeyDisable = event.data.state.isKeyDisable;
+    cheatState.isKeyFake = event.data.state.isKeyFake;
+    const canvas = document.getElementById("bufferCanvas");
+    if (canvas) {
+      canvas.style.display = event.data.state.isVisible?"block":"none";
+    }else{
+      console.warn("チートが有効化されていません");
     }
-  }
-
-  if (event.data.type === "INITIAL_STATE") {
-    console.log("catch: ",event.data.type);
-    document.getElementById("bufferCanvas").style.display = event.data.state?"display":"none";
   }
 });
 
@@ -59,9 +53,9 @@ window.addEventListener("message", (event) => {
 
   const DELAY_KEYINPUT = 10;
   const INTERVAL_OCR = 200;
-  const WIDTH_ROMAJI_AREA = 330;
+  const WIDTH_ROMAJI_AREA = 340;
   const HEIGHT_ROMAJI_AREA = 25;
-  const X_ROMAJI_AREA = 80;
+  const X_ROMAJI_AREA = 75;
   const Y_ROMAJI_AREA = 230;
 
   const bufferCanvas = document.createElement('canvas');
@@ -77,10 +71,14 @@ window.addEventListener("message", (event) => {
 
   window.addEventListener("keydown", (e) => {
     if (e.key === " ") {
-        executing = true;
+      executing = true;
+      e.stopImmediatePropagation();
+      e.preventDefault();//スペースキーだけ常に無効化
     }
-    e.stopImmediatePropagation();
-    e.preventDefault();//キー入力を無効化
+    if(cheatState.isKeyDisable){
+      e.stopImmediatePropagation();
+      e.preventDefault();//キー入力を無効化
+    }
   });
 
   const canvas = await waitForCanvas();
@@ -91,8 +89,9 @@ window.addEventListener("message", (event) => {
   const worker = await Tesseract.createWorker("eng");
 
   setInterval(() => {
+    if (cheatState.isAuto) executing = true;
     if (updating || !executing) return;
-      executing = false;
+    if (!cheatState.isAuto)  executing = false;
 
     bufferContext.drawImage(
       gl.canvas,
