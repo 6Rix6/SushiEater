@@ -16,8 +16,6 @@ window.addEventListener("message", (event) => {
     const canvas = document.getElementById("bufferCanvas");
     if (canvas) {
       canvas.style.display = event.data.state.isVisible?"block":"none";
-    }else{
-      console.warn("チートが有効化されていません");
     }
   }
 });
@@ -61,7 +59,7 @@ window.addEventListener("message", (event) => {
   const bufferCanvas = document.createElement('canvas');
   const bufferContext = bufferCanvas.getContext('2d');
   bufferCanvas.id = "bufferCanvas";
-  bufferCanvas.style.display = cheatState.isVisible?"block":"none";
+  //bufferCanvas.style.display = cheatState.isVisible?"block":"none";
   bufferCanvas.width = WIDTH_ROMAJI_AREA;
   bufferCanvas.height = HEIGHT_ROMAJI_AREA;
 
@@ -121,5 +119,6 @@ window.addEventListener("message", (event) => {
   // if(!window.isVisible){
   //   bufferCanvas.style.display = "none";
   // }
+  bufferCanvas.style.display = cheatState.isVisible?"block":"none";
   document.querySelector("#game").appendChild(bufferCanvas);
 })();

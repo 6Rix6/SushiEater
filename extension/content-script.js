@@ -58,8 +58,6 @@ document.body.appendChild(tesseractScript);
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // ページ側に window.postMessage で渡す
-  console.log(message);
-  if(message.type === "TOGGLE_CHEAT")window.postMessage({ type: "TOGGLE_CHEAT", state: message.state }, "*");
   if(message.type === "SET_CHEAT_STATE")window.postMessage({ type: "SET_CHEAT_STATE", state: message.state }, "*");
 });
 
