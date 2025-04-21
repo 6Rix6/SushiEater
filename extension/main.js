@@ -1,6 +1,6 @@
-window.cheatState = {
+let cheatState = {
   isAuto: false,
-  isVisible: true,
+  isVisible: false,
   setIsAuto: function(state) {
     this.isAuto = state;
     console.log("auto mode : ", state);
@@ -15,11 +15,16 @@ window.addEventListener("message", (event) => {
   if (event.source !== window) return; // 自分からの message 以外は無視
 
   if (event.data.type === "TOGGLE_CHEAT") {
-    if (window.cheatState) {
-      window.cheatState.setIsAuto(event.data.state);
+    if (cheatState) {
+      cheatState.setIsAuto(event.data.state);
     } else {
       console.warn("cheatState is not difined");
     }
+  }
+
+  if (event.data.type === "INITIAL_STATE") {
+    console.log("catch: ",event.data.type);
+    document.getElementById("bufferCanvas").style.display = event.data.state?"display":"none";
   }
 });
 
@@ -52,8 +57,6 @@ window.addEventListener("message", (event) => {
     });
   }
 
-
-
   const DELAY_KEYINPUT = 10;
   const INTERVAL_OCR = 200;
   const WIDTH_ROMAJI_AREA = 330;
@@ -64,7 +67,7 @@ window.addEventListener("message", (event) => {
   const bufferCanvas = document.createElement('canvas');
   const bufferContext = bufferCanvas.getContext('2d');
   bufferCanvas.id = "bufferCanvas";
-  bufferCanvas.style.display = "none";
+  bufferCanvas.style.display = cheatState.isVisible?"block":"none";
   bufferCanvas.width = WIDTH_ROMAJI_AREA;
   bufferCanvas.height = HEIGHT_ROMAJI_AREA;
 
@@ -116,6 +119,8 @@ window.addEventListener("message", (event) => {
       })
       .catch(console.error);
   }, INTERVAL_OCR);
-
+  // if(!window.isVisible){
+  //   bufferCanvas.style.display = "none";
+  // }
   document.querySelector("#game").appendChild(bufferCanvas);
 })();

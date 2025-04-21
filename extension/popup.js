@@ -1,6 +1,19 @@
 let isEnabled = false;
+const toggle = document.getElementById("toggle");
+const visible = document.getElementById("visible");
 
-document.getElementById("toggle").addEventListener("click", async () => {
+window.onload = async (e) => {
+  chrome.storage.local.get(["isVisible"],({isVisible})=>{
+    if (typeof isVisible === "undefined") {
+      chrome.storage.local.set({isVisible:false});
+    } else {
+      visible.checked = isVisible;
+    }
+  })
+}
+
+
+toggle.addEventListener("click", async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab) return;
 
@@ -17,7 +30,7 @@ document.getElementById("toggle").addEventListener("click", async () => {
         }
     });
     isEnabled = true;
-    document.getElementById("toggle").innerText = "無効化";
+    toggle.innerText = "無効化";
   } else {
     // 再読み込みでリセット（無効化）
     await chrome.scripting.executeScript({
@@ -27,7 +40,7 @@ document.getElementById("toggle").addEventListener("click", async () => {
       },
     });
     isEnabled = false;
-    document.getElementById("toggle").innerText = "有効化";
+    toggle.innerText = "有効化";
   }
 });
 
@@ -40,6 +53,7 @@ document.getElementById('auto').addEventListener('click',async ()=>{
 document.getElementById('visible').addEventListener('click',async ()=>{
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   const isVisible = document.getElementById('visible').checked;
+  chrome.storage.local.set({isVisible:isVisible});
   if (isVisible){
     chrome.scripting.executeScript( {
       target: { tabId: tab.id },
