@@ -120,9 +120,6 @@ window.addEventListener("message", (event) => {
       })
       .catch(console.error);
   }, INTERVAL_OCR);
-  // if(!window.isVisible){
-  //   bufferCanvas.style.display = "none";
-  // }
   bufferCanvas.style.display = cheatState.isVisible?"block":"none";
   document.querySelector("#game").appendChild(bufferCanvas);
 })();

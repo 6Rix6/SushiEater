@@ -77,7 +77,7 @@ window.onload = async (e) => {
     toggle.disabled = !isSushida;
 
     if (!isSushida) {
-      toggle.innerText = "このサイトでは有効化できません";
+      toggle.innerText = "このサイトでは\n有効化できません";
       toggle.style.opacity = 0.5;
       toggle.style.cursor = "not-allowed";
     }
