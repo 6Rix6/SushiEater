@@ -1,39 +1,18 @@
-let isEnabled = false;
 const toggle = document.getElementById("toggle");
 const visible = document.getElementById("visible");
 const auto = document.getElementById("auto");
 const keyDisable = document.getElementById("keyDisable");
 const keyFake = document.getElementById("keyFake");
 
+let isInjected = false;
+
 const cheatState = {
+  isEnabled: true,
   isVisible: false,
   isAuto: false,
   isKeyDisable: false,
   isKeyFake: false,
 }
-
-
-window.onload = async (e) => {
-  fetchCheatScript();
-  chrome.storage.local.get(
-    {
-      isVisible: false,
-      isAuto: false,
-      isKeyDisable: false,
-      isKeyFake: false,
-    },
-    (result)=>{
-      visible.checked = result.isVisible;
-      auto.checked = result.isAuto;
-      keyDisable.checked = result.isKeyDisable;
-      keyFake.checked = result.isKeyFake;
-      cheatState.isVisible = result.isVisible;
-      cheatState.isAuto = result.isAuto;
-      cheatState.isKeyDisable = result.isKeyDisable;
-      cheatState.isKeyFake = result.isKeyFake;
-    }
-  )
-};
 
 const sendCheatState = async() => {
   chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
@@ -41,48 +20,88 @@ const sendCheatState = async() => {
   });
 }
 
-const fetchCheatScript = async() => {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true }); 
-
-  await chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-      func: function(){
-        const bufferCanvas = document.getElementById("bufferCanvas");
-        const isEnabled = !!bufferCanvas;　//buffercanvasが存在するかどうかでisEnabledを切り替え(!!って書けるんや...)
-      }
-  });
+const toggleIsEnable = () => {
+  if(!isInjected){
+    isInjected = true;
+    setToggleButton(true);
+  }else{
+    cheatState.isEnabled = !cheatState.isEnabled;
+    chrome.storage.local.set({isEnabled:cheatState.isEnabled});
+    console.log(cheatState.isEnabled);
+    setToggleButton(cheatState.isEnabled);
+    console.log("スイッチ用toggle : ",cheatState.isEnabled);
+  }
 }
 
-toggle.addEventListener("click", async () => {
-  //    ↓↓↓↓↓  chrome.tabs.queryは配列を返すのでその0番目を"tab"に代入している(知らんかった～)
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true }); 
-  if (!tab) return;
+const setToggleButton = (isEnabled) => {
+  console.log("setToggleButton called. isEnabled: ",isEnabled);
+  if(isEnabled){
+    toggle.innerText = "無効化";
+    toggle.style.backgroundColor = "#f94144";//赤色
+  }else{
+    toggle.innerText = "有効化";
+    toggle.style.backgroundColor = "#c2c0c0";//灰色
+  }
+}
 
-  // if (!isEnabled) {
-  //   // main.js を注入
-  //   await chrome.scripting.executeScript({
-  //       target: { tabId: tab.id },
-  //       func: function(){
-  //           const script = document.createElement("script");
-  //           script.src = chrome.runtime.getURL("main.js");
-  //           script.id = "cheat-main-script";
-  //           document.body.appendChild(script);
-  //           console.log("Cheat activated.");
-  //       }
-  //   });
-  //   isEnabled = true;
-  //   toggle.innerText = "無効化";
-  // } else {
-  //   // 再読み込みでリセット（無効化）
-  //   await chrome.scripting.executeScript({
-  //     target: { tabId: tab.id },
-  //     func: () => {
-  //       location.reload(); // 手軽に元に戻す
-  //     },
-  //   });
-  //   isEnabled = false;
-  //   toggle.innerText = "有効化";
-  // }
+const getCheatState = async() => {
+  const defaultState = {
+    isEnabled: true,
+    isVisible: false,
+    isAuto: false,
+    isKeyDisable: false,
+    isKeyFake: false,
+  };
+
+  const result = await new Promise((resolve) => {
+    chrome.storage.local.get(defaultState, resolve);
+  });
+
+  visible.checked = result.isVisible;
+  auto.checked = result.isAuto;
+  keyDisable.checked = result.isKeyDisable;
+  keyFake.checked = result.isKeyFake;
+
+  cheatState.isEnabled = result.isEnabled;
+  cheatState.isVisible = result.isVisible;
+  cheatState.isAuto = result.isAuto;
+  cheatState.isKeyDisable = result.isKeyDisable;
+  cheatState.isKeyFake = result.isKeyFake;
+}
+
+window.onload = async (e) => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const url = tabs[0].url;
+    const isSushida = url.includes("sushida.net");
+
+    toggle.disabled = !isSushida;
+
+    if (!isSushida) {
+      toggle.innerText = "このサイトでは有効化できません";
+      toggle.style.opacity = 0.5;
+      toggle.style.cursor = "not-allowed";
+    }
+
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.disabled = !isSushida;
+    });
+  });
+
+  await getCheatState();
+  const va =  await chrome.storage.local.get("isInjected");
+  isInjected = va.isInjected;
+  console.log(cheatState.isEnabled);
+  if(va.isInjected) setToggleButton(cheatState.isEnabled);
+};
+
+toggle.addEventListener("click", async () => {
+  if(!isInjected){
+    chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+      chrome.tabs.sendMessage(tab.id, { type: "CHEAT_ACTIVATE" });
+    });
+  }
+  toggleIsEnable();
+  if(isInjected)sendCheatState();
 });
 
 auto.addEventListener('click', async ()=>{

@@ -1,4 +1,5 @@
 const cheatState = {
+  isEnabled: true,
   isVisible: false,
   isAuto: false,
   isKeyDisable: false,
@@ -9,6 +10,7 @@ window.addEventListener("message", (event) => {
   if (event.source !== window) return; // 自分からの message 以外は無視
 
   if(event.data.type === "SET_CHEAT_STATE") {
+    cheatState.isEnabled = event.data.state.isEnabled;  
     cheatState.isVisible = event.data.state.isVisible;
     cheatState.isAuto = event.data.state.isAuto;
     cheatState.isKeyDisable = event.data.state.isKeyDisable;
@@ -68,6 +70,7 @@ window.addEventListener("message", (event) => {
   let lastParsed = null;
 
   window.addEventListener("keydown", (e) => {
+    if(!cheatState.isEnabled) return;
     if (e.key === " ") {
       executing = true;
       e.stopImmediatePropagation();
@@ -87,6 +90,7 @@ window.addEventListener("message", (event) => {
   const worker = await Tesseract.createWorker("eng");
 
   setInterval(() => {
+    if (!cheatState.isEnabled) return;
     if (cheatState.isAuto) executing = true;
     if (updating || !executing) return;
     if (!cheatState.isAuto)  executing = false;
