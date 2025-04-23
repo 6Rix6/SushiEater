@@ -3,6 +3,7 @@ const visible = document.getElementById("visible");
 const auto = document.getElementById("auto");
 const keyDisable = document.getElementById("keyDisable");
 const keyFake = document.getElementById("keyFake");
+const icon = document.getElementById("icon");
 
 let isInjected = false;
 
@@ -36,10 +37,12 @@ const toggleIsEnable = () => {
 const setToggleButton = (isEnabled) => {
   console.log("setToggleButton called. isEnabled: ",isEnabled);
   if(isEnabled){
+    icon.src = "image/SushiNinja_nobg.png";
     toggle.innerText = "無効化";
     toggle.style.backgroundColor = "#f94144";//赤色
   }else{
     toggle.innerText = "有効化";
+    icon.src = "image/Sushi_nobg.png";
     toggle.style.backgroundColor = "#c2c0c0";//灰色
   }
 }
