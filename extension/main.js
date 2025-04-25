@@ -51,6 +51,45 @@ window.addEventListener("message", (event) => {
     });
   }
 
+  async function sendFakeKey(keys, { inputDelay = DELAY_KEYINPUT } = {}) {
+    return new Promise(resolve => {
+      keys.split('').forEach((c, i) => {
+        setTimeout(() => {
+          sendKey(c);
+          if (i + 1 === lastParsed.length) resolve(keys);
+        }, inputDelay * i);
+      });
+    });
+  }
+
+  const ocr = () => {
+    if (!cheatState.isEnabled) return;
+    if (cheatState.isAuto) executing = true;
+    if (updating || !executing) return;
+    if (!cheatState.isAuto)  executing = false;
+
+    bufferContext.drawImage(
+      gl.canvas,
+      X_ROMAJI_AREA,
+      Y_ROMAJI_AREA,
+      WIDTH_ROMAJI_AREA,
+      HEIGHT_ROMAJI_AREA,
+      0,
+      0,
+      WIDTH_ROMAJI_AREA,
+      HEIGHT_ROMAJI_AREA
+    );
+
+    worker.recognize(bufferCanvas)
+      .then(r => {
+        const matched = r.data.text.match(/([a-z-,!?]{2,})/);
+        if (!matched || matched[1] === lastParsed) return;
+
+        return matched;
+      })
+      .catch(console.error);
+  }
+
   const DELAY_KEYINPUT = 10;
   const INTERVAL_OCR = 200;
   const WIDTH_ROMAJI_AREA = 340;
@@ -107,18 +146,52 @@ window.addEventListener("message", (event) => {
       HEIGHT_ROMAJI_AREA
     );
 
-    worker.recognize(bufferCanvas)
-      .then(r => {
-        const matched = r.data.text.match(/([a-z-,!?]{2,})/);
-        if (!matched || matched[1] === lastParsed) return;
+    // worker.recognize(bufferCanvas)
+    //   .then(r => {
+    //     const matched = r.data.text.match(/([a-z-,!?]{2,})/);
+    //     if (!matched || matched[1] === lastParsed) return;
 
-        updating = true;
-        lastParsed = matched[1];
+    //     updating = true;
+    //     lastParsed = matched[1];
+    //     sendKeys(lastParsed)
+    //       .then(inputted => console.log(`completed: ${inputted}`))
+    //       .finally(() => { updating = false; });
+    //   })
+    //   .catch(console.error);
+     worker.recognize(bufferCanvas)
+    .then(r => {
+      const matched = r.data.text.match(/([a-z-,!?]{2,})/);
+      if (!matched || matched[1] === lastParsed) return;
+
+      updating = true;
+      lastParsed = matched[1];
+
+      if (cheatState.isKeyFake) {
+        let queue = lastParsed.split('');
+        const handleKey = (e) => {
+          if (e.key !== " ") {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+          }
+
+          if (queue.length > 0) {
+            sendKey(queue.shift());
+          }
+
+          if (queue.length === 0) {
+            window.removeEventListener("keydown", handleKey, true);
+            updating = false;
+            executing = true;
+          }
+        };
+        window.addEventListener("keydown", handleKey, true);
+      } else {
         sendKeys(lastParsed)
           .then(inputted => console.log(`completed: ${inputted}`))
           .finally(() => { updating = false; });
-      })
-      .catch(console.error);
+      }
+    })
+    .catch(console.error);
   }, INTERVAL_OCR);
   bufferCanvas.style.display = cheatState.isVisible?"block":"none";
   document.querySelector("#game").appendChild(bufferCanvas);
